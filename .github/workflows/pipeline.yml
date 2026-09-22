@@ -1,0 +1,29 @@
+name: Daily Weather ETL
+
+on:
+  schedule:
+    # Runs at 08:00 UTC every day.
+    - cron: '0 8 * * *'
+  # Adds a button in the GitHub UI to run the script manually
+  workflow_dispatch: 
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install Dependencies
+        run: pip install pandas requests sqlalchemy psycopg2-binary python-dotenv
+          
+      - name: Run Pipeline
+        env:
+          # Injects your GitHub Secret into the script securely
+          DB_URL: ${{ postgresql://neondb_owner:npg_PVrwR9lMFcp3@ep-old-feather-b3gjqoxw-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require }}
+        run: python weather_etl.py
