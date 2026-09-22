@@ -25,5 +25,5 @@ jobs:
       - name: Run Pipeline
         env:
           # Injects your GitHub Secret into the script securely
-          DB_URL: ${{ postgresql://neondb_owner:npg_PVrwR9lMFcp3@ep-old-feather-b3gjqoxw-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require }}
+          DB_URL: ${{ secrets.DB_URL }}
         run: python weather_etl.py
