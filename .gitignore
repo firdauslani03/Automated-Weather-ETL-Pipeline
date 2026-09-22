@@ -1,10 +1,4 @@
-# Ignore database files
-weather_data.db
-
-# Ignore log files
 pipeline.log
-
-# Ignore Python cache and virtual environments
 __pycache__/
 .venv/
 venv/
