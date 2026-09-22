@@ -8,3 +8,7 @@ pipeline.log
 __pycache__/
 .venv/
 venv/
+.neon
+.env.local
+node_modules/
+.env

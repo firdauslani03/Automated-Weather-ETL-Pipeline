@@ -1,13 +1,15 @@
 import os
 import time
 import requests
-import sqlite3
 import pandas as pd
 from datetime import datetime
+from sqlalchemy import create_engine
 from custom_logger import get_pipeline_logger
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = get_pipeline_logger()
-DB_FILE = r"C:\Users\firdaus\Documents\Automated-Weather-ETL-Pipeline\weather_data.db"
+DB_URL = os.getenv("DB_URL")
 
 # Define a list of dictionaries for all the cities you want to track
 CITIES = [
@@ -69,19 +71,20 @@ try:
     # ---------------------------------------------------------
     # LOAD
     # ---------------------------------------------------------
-    logger.info("Connecting to the database...")
-    conn = sqlite3.connect(DB_FILE)
+    logger.info("Connecting to the cloud database...")
     
-    # Batch load all 5 rows at once
+    # NEW: Create a SQLAlchemy engine instead of sqlite3
+    engine = create_engine(DB_URL)
+    
+    # Batch load all 5 rows at once to PostgreSQL
     df.to_sql(
         name="daily_weather", 
-        con=conn, 
+        con=engine, 
         if_exists="append",
         index=False 
     )
     
-    conn.close()
-    logger.info("Load successful: Saved batch to SQLite.")
+    logger.info("Load successful: Saved batch to Cloud PostgreSQL.")
 
 except Exception as e:
     logger.exception("CRITICAL: Pipeline failed during execution!")
