@@ -1,4 +1,6 @@
 # Automated Weather ETL Pipeline & Dashboard 🌦️
+**[🔴 View Live Dashboard Here](https://automated-weather-etl-pipeline-firdauslani.streamlit.app/)**
+![Weather Dashboard](dashboard.png)
 
 ## Objective
 An end-to-end Data Engineering pipeline that extracts daily weather data for multiple global cities, transforms it into a structured format, loads it into a local SQLite database, and visualizes the results in an interactive web dashboard.
