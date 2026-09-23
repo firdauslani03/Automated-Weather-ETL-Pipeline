@@ -15,7 +15,7 @@ st.markdown("This dashboard reads directly from a Neon Cloud PostgreSQL database
 # Grab the cloud database password
 DB_URL = os.getenv("DB_URL")
 
-@st.cache_data
+@st.cache_data(ttl=600)
 def load_data():
     engine = create_engine(DB_URL)
     df = pd.read_sql("SELECT * FROM daily_weather", engine)
@@ -29,7 +29,7 @@ try:
         st.plotly_chart(fig_temp, use_container_width=True)
 
         st.subheader("Raw Database Records")
-        st.dataframe(df.sort_values(by="observation_time", ascending=False))
+        st.dataframe(df.sort_values(by="observation_time", ascending=True).reset_index(drop=True))
     else:
         st.warning("The database is currently empty.")
 except Exception as e:
