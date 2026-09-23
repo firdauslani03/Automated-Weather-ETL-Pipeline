@@ -19,6 +19,13 @@ DB_URL = os.getenv("DB_URL")
 def load_data():
     engine = create_engine(DB_URL)
     df = pd.read_sql("SELECT * FROM daily_weather", engine)
+    
+    # 1. Ensure Pandas knows the database time is UTC
+    df['etl_processed_at'] = pd.to_datetime(df['etl_processed_at'], utc=True)
+    
+    # 2. Convert to Malaysia Time and format it cleanly (removes the +08:00 text)
+    df['etl_processed_at'] = df['etl_processed_at'].dt.tz_convert('Asia/Kuala_Lumpur').dt.strftime('%Y-%m-%d %H:%M:%S')
+    
     return df
 
 try:

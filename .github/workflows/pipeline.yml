@@ -2,10 +2,9 @@ name: Daily Weather ETL
 
 on:
   schedule:
-    # Runs at 08:00 UTC every day.
-    - cron: '0 8 * * *'
-  # Adds a button in the GitHub UI to run the script manually
-  workflow_dispatch: 
+    # Runs at minute 0 past every 3rd hour
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
 
 jobs:
   run-etl:
