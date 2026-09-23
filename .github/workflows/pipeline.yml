@@ -2,7 +2,7 @@ name: Daily Weather ETL
 
 on:
   schedule:
-    # Runs at minute 0 past every 3rd hour
+    # Runs at minute 0 past every 3rd hour (not a stopwatch)
     - cron: '0 */3 * * *'
   workflow_dispatch:
 
