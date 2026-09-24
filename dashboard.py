@@ -31,6 +31,32 @@ def load_data():
 try:
     df = load_data()
     if not df.empty:
+        st.subheader("Global Weather Highlights")
+        
+        # Find the rows with the highest and lowest temperatures
+        hottest_row = df.loc[df['temperature_c'].idxmax()]
+        coldest_row = df.loc[df['temperature_c'].idxmin()]
+        
+        # Create 3 columns for the metric cards
+        col1, col2, col3 = st.columns(3)
+        
+        # Note: We use 'delta' to cleverly display the city name underneath the temperature!
+        col1.metric(label="🔥 Hottest City", 
+                    value=f"{hottest_row['temperature_c']} °C", 
+                    delta=f"{hottest_row['city']}, {hottest_row['country']}", 
+                    delta_color="off")
+        
+        col2.metric(label="❄️ Coldest City", 
+                    value=f"{coldest_row['temperature_c']} °C", 
+                    delta=f"{coldest_row['city']}, {coldest_row['country']}", 
+                    delta_color="off")
+        
+        col3.metric(label="📊 Total Data Points", 
+                    value=len(df),
+                    delta="Rows in Database",
+                    delta_color="off")
+        
+        st.divider() # Adds a clean horizontal line below the KPIs    
         st.subheader("Temperature Trends by City")
         fig_temp = px.line(df, x="observation_time", y="temperature_c", color="city", markers=True)
         st.plotly_chart(fig_temp, use_container_width=True)
