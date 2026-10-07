@@ -3,4 +3,5 @@ pandas
 plotly
 sqlalchemy
 psycopg2-binary
+psycopg
 python-dotenv
