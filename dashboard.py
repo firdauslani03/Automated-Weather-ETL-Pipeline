@@ -66,4 +66,4 @@ try:
     else:
         st.warning("The database is currently empty.")
 except Exception as e:
-    st.error(f"Database connection failed. Did you set the DB_URL secret?")
+    st.error(f"Database connection failed: {e}")
