@@ -1,35 +1,31 @@
-# Automated Weather ETL Pipeline & Dashboard 🌦️
-**[🔴 View Live Dashboard Here](https://automated-weather-etl-pipeline-firdauslani.streamlit.app/)**
-![Weather Dashboard](dashboard.png)
+# ⛅ Automated Weather ETL Pipeline & Dashboard
 
-## Objective
-An end-to-end Data Engineering pipeline that extracts daily weather data for multiple global cities, transforms it into a structured format, loads it into a local SQLite database, and visualizes the results in an interactive web dashboard.
+An end-to-end data engineering portfolio project that automatically extracts live weather data for global cities, stores it in a serverless cloud PostgreSQL database, and visualizes it via a highly interactive web dashboard.
 
-This project demonstrates core ETL concepts, batch processing, automated scheduling, robust error logging, and data visualization.
+![Live Dashboard](dashboard.png)
 
-## Architecture & Data Flow
-1. **Extract:** Fetches real-time weather data (temperature, wind speed) for 5 major cities via the [Open-Meteo API](https://open-meteo.com/). Implements rate-limiting to respect API constraints.
-2. **Transform:** Uses `pandas` to flatten nested JSON data, filter required fields, and inject critical ETL metadata (processing timestamps).
-3. **Load:** Appends the cleaned, batched data into a local `SQLite` database without duplicating historical records.
-4. **Automate:** Scheduled via Windows Task Scheduler to run silently in the background every day.
-5. **Consume:** An interactive `Streamlit` web application reads directly from the SQLite database to display temperature trends and raw data using `plotly`.
+## 🚀 Live Application
+[View the Live Streamlit Dashboard Here](https://automated-weather-etl-pipeline-firdauslani.streamlit.app/)
 
-## Tech Stack
-* **Language:** Python 3
-* **Data Processing:** `pandas`, `requests`
-* **Database:** SQLite (`sqlite3`)
-* **Visualization:** `streamlit`, `plotly`
-* **Orchestration:** Windows Task Scheduler
+## 🛠️ Architecture & Tech Stack
+* **Data Source:** Open-Meteo API (Live temperature and wind speed)
+* **Extract & Transform:** Python (Pandas, Requests)
+* **Load & Storage:** Neon Cloud PostgreSQL (Serverless Database)
+* **Automation:** GitHub Actions (CI/CD Cron Scheduler)
+* **Data Visualization:** Streamlit Community Cloud & Plotly Express
 
-## Data Engineering Skills Demonstrated
-* **Batch Processing & Rate Limiting:** Looping through multiple API endpoints efficiently while using `time.sleep()` to prevent server bans.
-* **Data Transformation:** Structuring raw, nested API responses into tabular formats suitable for a relational database.
-* **Metadata Tracking:** Adding `etl_processed_at` timestamps to track when rows were ingested, a standard industry practice for auditing.
-* **Robust Error Handling:** Utilizing `raise_for_status()` for API failures and a custom logging module (`custom_logger.py`) to track execution history and capture stack traces in a local `.log` file.
-* **Data Visualization:** Building an interactive, front-end dashboard to make the raw database accessible to business users.
+## 📊 Key Features
+* **Automated ETL Pipeline:** A Python script scheduled via GitHub Actions to fetch, transform, and load new data automatically.
+* **Modern Tabbed UI:** A wide-layout interface featuring custom CSS for emphasized KPIs and seamless tabbed navigation between overviews, trends, and raw data.
+* **Interactive Mapping:** Visualizes the latest global temperatures using Plotly's `scatter_map` with dynamic hover tooltips.
+* **Automated PDF Reporting:** Integrates `fpdf2` to generate on-the-fly, cleanly formatted, downloadable PDF business reports.
+* **Timezone Management:** Raw data is robustly stored in UTC and dynamically transformed to local time (MYT) strictly for UI presentation.
+* **Stateless Cloud Deployment:** Uses pre-compiled `psycopg-binary` drivers and strict environment variables to ensure the app runs flawlessly on cloud servers.
 
-## How to Run Locally
+## 💻 Local Setup & Development
+To run this project locally, ensure you have Python installed, then follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/YourUsername/Automated-Weather-ETL-Pipeline.git](https://github.com/YourUsername/Automated-Weather-ETL-Pipeline.git)
+   git clone [https://github.com/firdauslani03/Automated-Weather-ETL-Pipeline](https://github.com/firdauslani03/Automated-Weather-ETL-Pipeline)
+   cd your-repo-name
