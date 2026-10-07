@@ -46,7 +46,7 @@ try:
         latest_df = df.drop_duplicates(subset=['city'], keep='first')
 
         # 2. Build the interactive map
-        fig_map = px.scatter_mapbox(
+        fig_map = px.scatter_map(
             latest_df,
             lat="latitude",
             lon="longitude",
@@ -55,7 +55,7 @@ try:
             color="temperature_c",
             color_continuous_scale="bluered", # Blue for cold, Red for hot
             zoom=1.2,
-            mapbox_style="carto-positron" # A clean, light-colored map background
+            map_style="carto-positron" # A clean, light-colored map background
         )
 
         # 3. Remove extra margins to make the map span the full width
