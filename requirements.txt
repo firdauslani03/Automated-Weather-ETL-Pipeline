@@ -6,3 +6,4 @@ psycopg2-binary
 psycopg
 psycopg-binary
 python-dotenv
+fpdf2

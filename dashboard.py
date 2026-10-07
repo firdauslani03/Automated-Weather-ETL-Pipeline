@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
+from fpdf import FPDF
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
@@ -16,6 +17,47 @@ st.markdown("This dashboard reads directly from a Neon Cloud PostgreSQL database
 DB_URL = os.getenv("DB_URL")
 
 @st.cache_data(ttl=600)
+
+def create_pdf_report(dataframe):
+    # Initialize PDF
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Add a clean Title
+    pdf.set_font('helvetica', 'B', 16)
+    pdf.cell(0, 10, 'Global Weather Summary Report', border=False, align='C')
+    pdf.ln(15) # Line break
+    
+    # Setup Table Headers (Sleek light blue fill)
+    pdf.set_font('helvetica', 'B', 10)
+    pdf.set_fill_color(200, 220, 255)
+    
+    columns = ['City', 'Country', 'Temp (C)', 'Wind (km/h)', 'Last Updated (MYT)']
+    col_widths = [35, 35, 25, 30, 60]
+    
+    # Print Headers
+    for col, width in zip(columns, col_widths):
+        pdf.cell(width, 10, col, border=1, align='C', fill=True)
+    pdf.ln()
+    
+    # Setup Table Body
+    pdf.set_font('helvetica', '', 10)
+    
+    # Filter to only show the most recent data for the report
+    latest_df = dataframe.drop_duplicates(subset=['city'], keep='first')
+    
+    # Print Data Rows
+    for _, row in latest_df.iterrows():
+        pdf.cell(col_widths[0], 10, str(row['city']), border=1, align='C')
+        pdf.cell(col_widths[1], 10, str(row['country']), border=1, align='C')
+        pdf.cell(col_widths[2], 10, f"{row['temperature_c']} °C", border=1, align='C')
+        pdf.cell(col_widths[3], 10, str(row['wind_speed_kmh']), border=1, align='C')
+        pdf.cell(col_widths[4], 10, str(row['etl_processed_at']), border=1, align='C')
+        pdf.ln()
+        
+    # Return the PDF as bytes so Streamlit can download it
+    return bytes(pdf.output())
+
 def load_data():
     engine = create_engine(DB_URL)
     df = pd.read_sql("SELECT * FROM daily_weather", engine)
@@ -31,6 +73,21 @@ def load_data():
 try:
     df = load_data()
     if not df.empty:
+        with st.sidebar:
+            st.header("📥 Export Data")
+            st.write("Download the latest snapshot as a clean PDF report.")
+            
+            # Generate the PDF bytes
+            pdf_bytes = create_pdf_report(df)
+            
+            # Streamlit Download Button
+            st.download_button(
+                label="📄 Download PDF Report",
+                data=pdf_bytes,
+                file_name="Weather_Report.pdf",
+                mime="application/pdf"
+            )
+
         st.subheader("Global Weather Highlights")
         
         # Find the rows with the highest and lowest temperatures
