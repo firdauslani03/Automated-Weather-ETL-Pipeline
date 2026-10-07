@@ -9,14 +9,11 @@ from sqlalchemy import create_engine
 # Load environment variables invisibly
 load_dotenv()
 
-st.set_page_config(page_title="Weather ETL Dashboard", layout="wide")
-st.title("🌦️ Global Weather Dashboard")
-st.markdown("This dashboard reads directly from a Neon Cloud PostgreSQL database updated daily by a GitHub Actions ETL pipeline.")
+# Set wide layout and custom browser tab title/icon (Must be the first Streamlit command)
+st.set_page_config(page_title="Weather ETL Dashboard", page_icon="🌤️", layout="wide")
 
 # Grab the cloud database password
 DB_URL = os.getenv("DB_URL")
-
-@st.cache_data(ttl=600)
 
 def create_pdf_report(dataframe):
     # Initialize PDF
@@ -26,7 +23,7 @@ def create_pdf_report(dataframe):
     # Add a clean Title
     pdf.set_font('helvetica', 'B', 16)
     pdf.cell(0, 10, 'Global Weather Summary Report', border=False, align='C')
-    pdf.ln(15) # Line break
+    pdf.ln(15) 
     
     # Setup Table Headers (Sleek light blue fill)
     pdf.set_font('helvetica', 'B', 10)
@@ -58,6 +55,7 @@ def create_pdf_report(dataframe):
     # Return the PDF as bytes so Streamlit can download it
     return bytes(pdf.output())
 
+@st.cache_data(ttl=600)
 def load_data():
     engine = create_engine(DB_URL)
     df = pd.read_sql("SELECT * FROM daily_weather", engine)
@@ -65,7 +63,7 @@ def load_data():
     # 1. Ensure Pandas knows the database time is UTC
     df['etl_processed_at'] = pd.to_datetime(df['etl_processed_at'], utc=True)
     
-    # 2. Convert to Malaysia Time and format it cleanly (removes the +08:00 text)
+    # 2. Convert to Malaysia Time and format it cleanly
     df['etl_processed_at'] = df['etl_processed_at'].dt.tz_convert('Asia/Kuala_Lumpur').dt.strftime('%Y-%m-%d %H:%M:%S')
     
     return df
@@ -73,7 +71,16 @@ def load_data():
 try:
     df = load_data()
     if not df.empty:
+        # --- SIDEBAR & CONTROLS ---
         with st.sidebar:
+            st.header("🎛️ Dashboard Controls")
+            
+            # Dynamic dropdown list based on cities in your database
+            city_list = ["Global View"] + list(df['city'].unique())
+            selected_city = st.selectbox("Filter by City:", city_list)
+            
+            st.divider() 
+            
             st.header("📥 Export Data")
             st.write("Download the latest snapshot as a clean PDF report.")
             
@@ -85,65 +92,85 @@ try:
                 label="📄 Download PDF Report",
                 data=pdf_bytes,
                 file_name="Weather_Report.pdf",
-                mime="application/pdf"
+                mime="application/pdf",
+                use_container_width=True 
             )
 
-        st.subheader("Global Weather Highlights")
-        
-        # Find the rows with the highest and lowest temperatures
-        hottest_row = df.loc[df['temperature_c'].idxmax()]
-        coldest_row = df.loc[df['temperature_c'].idxmin()]
-        
-        # Create 3 columns for the metric cards
-        col1, col2, col3 = st.columns(3)
+        # Apply the filter to the data
+        if selected_city != "Global View":
+            display_df = df[df['city'] == selected_city]
+        else:
+            display_df = df
 
-        st.subheader("Live Global Temperatures")
+        # --- MAIN UI LAYOUT ---
+        st.title("🌤️ Live Weather Data Pipeline")
+        st.markdown("Automated end-to-end ETL pipeline extracting real-time weather metrics.")
 
-        # 1. Filter the dataframe to only keep the newest row for each city
-        latest_df = df.drop_duplicates(subset=['city'], keep='first')
+        # Create 3 sleek navigation tabs
+        tab1, tab2, tab3 = st.tabs(["🌍 Global Overview", "📈 Trends & Charts", "🗄️ Raw Database"])
 
-        # 2. Build the interactive map
-        fig_map = px.scatter_map(
-            latest_df,
-            lat="latitude",
-            lon="longitude",
-            hover_name="city",
-            hover_data={"latitude": False, "longitude": False, "temperature_c": True, "wind_speed_kmh": True},
-            color="temperature_c",
-            color_continuous_scale="bluered", # Blue for cold, Red for hot
-            zoom=1.2,
-            map_style="carto-positron" # A clean, light-colored map background
-        )
+        with tab1:
+            st.subheader("Global Weather Highlights")
+            
+            # Find the rows with the highest and lowest temperatures from the global dataset
+            hottest_row = df.loc[df['temperature_c'].idxmax()]
+            coldest_row = df.loc[df['temperature_c'].idxmin()]
+            
+            # Create 3 columns for the metric cards
+            col1, col2, col3 = st.columns(3)
+            
+            col1.metric(label="🔥 Hottest City", 
+                        value=f"{hottest_row['temperature_c']} °C", 
+                        delta=f"{hottest_row['city']}, {hottest_row['country']}", 
+                        delta_color="off")
+            
+            col2.metric(label="❄️ Coldest City", 
+                        value=f"{coldest_row['temperature_c']} °C", 
+                        delta=f"{coldest_row['city']}, {coldest_row['country']}", 
+                        delta_color="off")
+            
+            col3.metric(label="📊 Total Data Points", 
+                        value=len(df),
+                        delta="Rows in Database",
+                        delta_color="off")
+            
+            st.divider() 
+            st.subheader("Interactive Temperature Map")
 
-        # 3. Remove extra margins to make the map span the full width
-        fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+            # Filter the dataframe to only keep the newest row for each city for the map
+            latest_df = display_df.drop_duplicates(subset=['city'], keep='first')
 
-        # 4. Display on Streamlit
-        st.plotly_chart(fig_map, use_container_width=True)
-        
-        # Note: We use 'delta' to cleverly display the city name underneath the temperature!
-        col1.metric(label="🔥 Hottest City", 
-                    value=f"{hottest_row['temperature_c']} °C", 
-                    delta=f"{hottest_row['city']}, {hottest_row['country']}", 
-                    delta_color="off")
-        
-        col2.metric(label="❄️ Coldest City", 
-                    value=f"{coldest_row['temperature_c']} °C", 
-                    delta=f"{coldest_row['city']}, {coldest_row['country']}", 
-                    delta_color="off")
-        
-        col3.metric(label="📊 Total Data Points", 
-                    value=len(df),
-                    delta="Rows in Database",
-                    delta_color="off")
-        
-        st.divider() # Adds a clean horizontal line below the KPIs    
-        st.subheader("Temperature Trends by City")
-        fig_temp = px.line(df, x="observation_time", y="temperature_c", color="city", markers=True)
-        st.plotly_chart(fig_temp, use_container_width=True)
+            # Build the interactive map using the new Plotly syntax
+            fig_map = px.scatter_map(
+                latest_df,
+                lat="latitude",
+                lon="longitude",
+                hover_name="city",
+                hover_data={"latitude": False, "longitude": False, "temperature_c": True, "wind_speed_kmh": True},
+                color="temperature_c",
+                color_continuous_scale="bluered", 
+                zoom=1.2,
+                map_style="carto-positron" 
+            )
 
-        st.subheader("Raw Database Records")
-        st.dataframe(df.sort_values(by="observation_time", ascending=True).reset_index(drop=True))
+            # Remove extra margins to make the map span the full width
+            fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+            st.plotly_chart(fig_map, use_container_width=True)
+
+        with tab2:
+            st.subheader("Temperature Trends by City")
+            fig_temp = px.line(display_df, x="observation_time", y="temperature_c", color="city", markers=True)
+            st.plotly_chart(fig_temp, use_container_width=True)
+
+        with tab3:
+            st.subheader("Database Records")
+            with st.expander("Click to view raw PostgreSQL tables", expanded=True):
+                # Ensure chronological sorting, reset the index, and hide the index in the UI
+                st.dataframe(
+                    display_df.sort_values(by="observation_time", ascending=True).reset_index(drop=True),
+                    hide_index=True, 
+                    use_container_width=True
+                )
     else:
         st.warning("The database is currently empty.")
 except Exception as e:
