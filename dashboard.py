@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
-from sqlalchemy import create_engine
 import plotly.express as px
 import os
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
 
 # Load environment variables invisibly
 load_dotenv()
@@ -39,6 +39,30 @@ try:
         
         # Create 3 columns for the metric cards
         col1, col2, col3 = st.columns(3)
+
+        st.subheader("Live Global Temperatures")
+
+        # 1. Filter the dataframe to only keep the newest row for each city
+        latest_df = df.drop_duplicates(subset=['city'], keep='first')
+
+        # 2. Build the interactive map
+        fig_map = px.scatter_mapbox(
+            latest_df,
+            lat="latitude",
+            lon="longitude",
+            hover_name="city",
+            hover_data={"latitude": False, "longitude": False, "temperature_c": True, "wind_speed_kmh": True},
+            color="temperature_c",
+            color_continuous_scale="bluered", # Blue for cold, Red for hot
+            zoom=1.2,
+            mapbox_style="carto-positron" # A clean, light-colored map background
+        )
+
+        # 3. Remove extra margins to make the map span the full width
+        fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+
+        # 4. Display on Streamlit
+        st.plotly_chart(fig_map, use_container_width=True)
         
         # Note: We use 'delta' to cleverly display the city name underneath the temperature!
         col1.metric(label="🔥 Hottest City", 
